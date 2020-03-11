@@ -21,16 +21,8 @@ class Course extends Model
      */
     public function comments()
     {
-        return $this->morphMany('App\Comment', 'commentable')
+        return $this->morphMany(Comment::class, 'commentable')
             ->whereNull('parent_id')
             ->orderBy('created_at', 'desc');
-    }
-
-    /**
-     * Get all of the comment's children
-     */
-    public function children()
-    {
-        //@todo implement relationships on children of a comment
     }
 }

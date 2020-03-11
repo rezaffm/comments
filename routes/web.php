@@ -19,7 +19,11 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
+Route::resource('comments/{comment}/replies', 'Comments\CommentReplyController');
+Route::resource('comments', 'Comments\CommentController');
+
 Route::resource('courses', 'Courses\CourseController');
+
 Route::resource('courses/{course}/comments', 'Courses\CourseCommentController', [
     'names' => [
         'index' => 'course.comments.index'
