@@ -9,7 +9,8 @@ use App\Http\Controllers\Controller;
 
 class CommentController extends Controller
 {
-    public function update(Comment $comment, Request $request) {
+    public function update(Comment $comment, Request $request)
+    {
 
         \Auth::loginUsingId(1);
 
@@ -24,5 +25,10 @@ class CommentController extends Controller
         ]);
 
         return new CommentResource($comment);
+    }
+
+    public function destroy(Comment $comment, Request $request)
+    {
+        $comment->delete();
     }
 }

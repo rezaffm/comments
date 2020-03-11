@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h3 class="mb-5">{{ meta.total }}</h3>
+        <h3 class="mb-5">{{ meta.total }} {{ pluralize('comment', meta.total) }}</h3>
         <template v-if="reply">
             <comment-reply :comment="reply" />
         </template>
@@ -71,10 +71,20 @@
                 this.meta = comments.data.meta
 
             },
+            async loadOneAfterDeletion() {
+                if (this.meta.current_page >= this.meta.last_page) {
+                    return
+                }
+
+                let comments = await this.fetchComments(this.meta.current_page)
+
+                this.comments.push(comments.data.data[comments.data.data.length - 1])
+                this.meta = comments.data.meta
+            },
             async prependComment(comment) {
                 this.comments.unshift(comment)
 
-                this.fetchMeta()
+                await this.fetchMeta()
 
                 if (this.meta.current_page < this.meta.last_page) {
                     this.comments.pop()
@@ -84,7 +94,13 @@
                 this.reply = comment
             },
             appendReply (comment, reply) {
-                _.find(this.comments, { id: comment.id }).children.push(reply)
+                let replyingToComment = _.find(this.comments, { id: comment.id})
+
+                if (!replyingToComment.hasOwnProperty('children')) {
+                    replyingToComment.children = [];
+                }
+
+                replyingToComment.children.push(reply)
             },
             editComment(comment) {
                 if (comment.child) {
@@ -95,9 +111,28 @@
                     })
 
                     _.assign(childComment, comment)
+
+                    return
                 }
 
                  _.assign(_.find(this.comments, { id: comment.id }), comment)
+            },
+            deleteComment(comment) {
+                if (comment.child) {
+                    let parentComment = _.find(this.comments, { id: comment.parent_id }, comment)
+
+                    parentComment.children = parentComment.children.filter((child) => {
+                                                return child.id !== comment.id
+                                            })
+                    return
+                }
+
+                this.comments = this.comments.filter((c) => {
+                                    return c.id !== comment.id
+                                })
+
+                this.meta.total--
+                this.loadOneAfterDeletion()
             }
         },
         mounted() {
@@ -116,6 +151,7 @@
             })
 
             bus.$on('comment:editing', this.editComment)
+            bus.$on('comment:deleted', this.deleteComment)
         }
     }
 </script>

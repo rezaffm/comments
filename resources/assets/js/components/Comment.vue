@@ -24,9 +24,14 @@
             <li class="list-inline-item" v-if="!comment.child">
                 <a href="#" @click.prevent="reply">Reply</a>
             </li>
-            <li class="list-inline-item" v-if="comment.owner">
-                <a href="#" @click.prevent="editing = true">Edit</a>
-            </li>
+            <template v-if="comment.owner">
+                <li class="list-inline-item">
+                    <a href="#" @click.prevent="editing = true">Edit</a>
+                </li>
+                <li class="list-inline-item">
+                    <a href="#" @click.prevent="destroy">Delete</a>
+                </li>
+            </template>
         </ul>
 
         <template v-if="comment.children">
@@ -71,6 +76,12 @@
         methods: {
             reply() {
                 bus.$emit('comment:reply', this.comment)
+            },
+            async destroy() {
+                if (confirm('Are you sure you want to delete this comment')) {
+                    await axios.delete(`/comments/${this.comment.id}`)
+                    bus.$emit('comment:deleted', this.comment)
+                }
             }
         },
         mounted() {
